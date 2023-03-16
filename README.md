@@ -1,5 +1,5 @@
 # Barchart API
-*Version: 0.0.1*
+*Version: 0.2.0*
 
 Unofficial API for https://www.barchart.com/
 
