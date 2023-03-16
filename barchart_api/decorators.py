@@ -3,7 +3,7 @@
 
 import functools
 try:
-    from gitlab_api.exceptions import LoginRequiredError
+    from barchart_api.exceptions import LoginRequiredError
 except ModuleNotFoundError:
     from exceptions import LoginRequiredError
 
