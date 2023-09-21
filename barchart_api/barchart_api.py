@@ -101,7 +101,7 @@ class Api(object):
             response_page = self._session.get(
                 f'{self.url}/proxies/core-api/v1/quotes/get?lists=stocks.us.signals_ratings.v2_top{api_filter}&limit={per_page}&page={page}&raw=1',
                 headers=self.headers, verify=self.verify)
-            response.append(response_page.json())
+            response.append(response_page)
         return response
 
     def get_top_etfs_top_own(self, ordering: str = "asc", order_by: str = "symbol",
@@ -138,7 +138,7 @@ class Api(object):
             response_page = self._session.get(
                 f'{self.url}/proxies/core-api/v1/quotes/get?lists=etfs.us.signals_ratings.v2_top{api_filter}&limit={per_page}&page={page}',
                 headers=self.headers, verify=self.verify)
-            response.append(response_page.json())
+            response.append(response_page)
         return response
 
 
