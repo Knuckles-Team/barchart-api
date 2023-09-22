@@ -19,10 +19,7 @@ except ModuleNotFoundError:
 
 class Api(object):
 
-    def __init__(self, url: str = None, verify: bool = True):
-        if url is None:
-            raise MissingParameterError
-
+    def __init__(self, url: str = "https://www.barchart.com/", verify: bool = True):
         self._session = requests.Session()
         self.url = url.rstrip('/')
         self.headers = None
@@ -142,9 +139,13 @@ class Api(object):
         return response
 
 
-if __name__ == "__main__":
-    barchart_client = Api(url="https://www.barchart.com/")
-    top_stocks = barchart_client.get_top_stocks_top_own(max_pages=1)
-    print(f"Top Stocks: {json.dumps(top_stocks, indent=2)}")
-    top_etfs = barchart_client.get_top_etfs_top_own(max_pages=1)
-    print(f"Top ETFs: {json.dumps(top_etfs, indent=2)}")
+# if __name__ == "__main__":
+#     barchart_client = Api(url="https://www.barchart.com/")
+#     top_stocks_responses = barchart_client.get_top_stocks_top_own(max_pages=1)
+#     top_stocks = []
+#     for top_stocks_response in top_stocks_responses:
+#         try:
+#             top_stocks.append(top_stocks_response.json())
+#         except Exception as e:
+#             print(f"Top Stocks ERROR: {top_stocks_response}")
+#     print(f"Top Stocks: {top_stocks}")

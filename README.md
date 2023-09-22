@@ -13,10 +13,15 @@ Unofficial API for https://www.barchart.com/
 # coding: utf-8
 import barchart_api
 
-barchart_client = barchart_api.Api(url="https://barchart.com")
-
-top_stocks_top_own = barchart_client.get_top_stocks_top_own()
-print(top_stocks_top_own)
+barchart_client = barchart_api.Api(url="https://www.barchart.com/")
+top_stocks_responses = barchart_client.get_top_stocks_top_own(max_pages=1)
+top_stocks = []
+for top_stocks_response in top_stocks_responses:
+    try:
+        top_stocks.append(top_stocks_response.json())
+    except Exception as e:
+        print(f"Top Stocks ERROR: {top_stocks_response}")
+print(f"Top Stocks: {top_stocks}")
 ```
 
 #### Install Instructions
