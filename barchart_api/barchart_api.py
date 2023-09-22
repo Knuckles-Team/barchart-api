@@ -149,3 +149,6 @@ class Api(object):
 #         except Exception as e:
 #             print(f"Top Stocks ERROR: {top_stocks_response}")
 #     print(f"Top Stocks: {top_stocks}")
+#     top_stocks = top_stocks[0]['data']
+#     with open("data2.json", "w") as f:
+#         json.dump({"stocks": top_stocks}, f, indent=4)
