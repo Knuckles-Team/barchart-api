@@ -73,7 +73,6 @@ class Api(object):
                                 "&daystoexpiration=1"
                                 "&contractroll=expiration",
                   max_records: int = 640):
-        response = []
         if not symbol:
             raise MissingParameterError
         api_filter = f"?symbol={symbol}"
