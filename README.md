@@ -22,11 +22,17 @@
 
 *Version: 0.9.0*
 
-Unofficial API for https://www.barchart.com/
+API for [Barchart](https://www.barchart.com/)
 
 #### API Calls:
 - Top Stocks to Own
 - Top ETFs to Own
+
+This repository is actively maintained - Contributions are welcome!
+
+Contribution Opportunities:
+- Support more endpoints!
+
 
 <details>
   <summary><b>Usage:</b></summary>
