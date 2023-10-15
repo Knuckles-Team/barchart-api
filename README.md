@@ -20,7 +20,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/barchart-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/barchart-api)
 
-*Version: 0.9.0*
+*Version: 0.10.0*
 
 API for [Barchart](https://www.barchart.com/)
 
