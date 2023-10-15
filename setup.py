@@ -27,7 +27,7 @@ setup(
     url='https://github.com/Knuckles-Team/barchart-api',
     author=__author__,
     author_email='knucklessg1@gmail.com',
-    license='MIT License',
+    license='MIT',
     packages=['barchart_api'],
     include_package_data=True,
     install_requires=[str(requirement.requirement) for requirement in requirements],
