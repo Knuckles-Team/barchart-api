@@ -88,7 +88,6 @@ class Api(object):
             f'{self.url}/proxies/timeseries/queryeod.ashx{api_filter}', headers=self.headers, verify=self.verify)
         return response
 
-
     def get_top_stocks_top_own(self, ordering: str = "asc", order_by: str = "symbol",
                                meta: str = "field.shortName%2Cfield.type%2Cfield.description%2Clists.lastUpdate",
                                fields: str = "symbol%2CsymbolName%2ClastPrice%2CpriceChange%2CpercentChange%2Copinion%2CopinionPrevious%2CopinionLastWeek%2CopinionLastMonth%2CsymbolCode%2CsymbolType%2ChasOptions",
@@ -162,7 +161,6 @@ class Api(object):
                 headers=self.headers, verify=self.verify)
             response.append(response_page)
         return response
-
 
 # if __name__ == "__main__":
 #     barchart_client = Api(url="https://www.barchart.com/")
