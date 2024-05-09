@@ -3,7 +3,10 @@
 
 import sys
 import re
+from typing import List
+
 import requests
+from requests import Response
 import urllib3
 
 try:
@@ -86,7 +89,7 @@ class Api(object):
         "&daystoexpiration=1"
         "&contractroll=expiration",
         max_records: int = 640,
-    ):
+    ) -> Response:
         if not symbol:
             raise MissingParameterError
         api_filter = f"?symbol={symbol}"
@@ -114,7 +117,7 @@ class Api(object):
         has_options: bool = True,
         max_pages: int = 1,
         per_page: int = 100,
-    ):
+    ) -> List[Response]:
         response = []
         api_filter = ""
         if ordering:
@@ -157,7 +160,7 @@ class Api(object):
         has_options: bool = True,
         max_pages: int = 1,
         per_page: int = 100,
-    ):
+    ) -> List[Response]:
         response = []
         api_filter = ""
         if ordering:
@@ -192,16 +195,15 @@ class Api(object):
         return response
 
 
-# if __name__ == "__main__":
-#     barchart_client = Api(url="https://www.barchart.com/")
-#     top_stocks_responses = barchart_client.get_top_stocks_top_own(max_pages=1)
-#     top_stocks = []
-#     for top_stocks_response in top_stocks_responses:
-#         try:
-#             top_stocks.append(top_stocks_response.json())
-#         except Exception as e:
-#             print(f"Top Stocks ERROR: {top_stocks_response}")
-#     print(f"Top Stocks: {top_stocks}")
-#     top_stocks = top_stocks[0]['data']
-#     with open("data2.json", "w") as f:
-#         json.dump({"stocks": top_stocks}, f, indent=4)
+if __name__ == "__main__":
+    barchart_client = Api(url="https://www.barchart.com/")
+    top_stocks_responses = barchart_client.get_top_stocks_top_own(max_pages=1)
+    top_stocks = []
+    for top_stocks_response in top_stocks_responses:
+        try:
+            top_stocks.append(top_stocks_response.json())
+        except Exception as e:
+            print(f"Top Stocks ERROR: {top_stocks_response}")
+    print(f"Top Stocks: {top_stocks}")
+    top_stocks = top_stocks[0]['data']
+    print(f'{top_stocks}')
