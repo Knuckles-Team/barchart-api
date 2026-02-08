@@ -3,39 +3,41 @@
 
 import sys
 import re
-from typing import List
+from typing import Dict, Any, Optional
 
 import requests
-from requests import Response
 import urllib3
+from pydantic import ValidationError
 
-try:
-    from barchart_api.decorators import require_auth
-except ModuleNotFoundError:
-    pass
-try:
-    from barchart_api.exceptions import (
-        AuthError,
-        UnauthorizedError,
-        ParameterError,
-        MissingParameterError,
-    )
-except ModuleNotFoundError:
-    from exceptions import (
-        AuthError,
-        UnauthorizedError,
-        ParameterError,
-        MissingParameterError,
-    )
+from barchart_api.barchart_models import (
+    GetStockModel,
+    GetTopOwnModel,
+    HistoricalItem,
+    TopOwnItem,
+    Response,
+)
+from barchart_api.decorators import require_auth
+from barchart_api.exceptions import (
+    AuthError,
+    UnauthorizedError,
+    ParameterError,
+    MissingParameterError,
+)
 
 
 class Api(object):
 
-    def __init__(self, url: str = "https://www.barchart.com/", verify: bool = True):
+    def __init__(
+            self,
+            url: str = "https://www.barchart.com/",
+            proxies: Optional[dict] = None,
+            verify: Optional[bool] = True,
+    ):
         self._session = requests.Session()
         self.url = url.rstrip("/")
         self.headers = None
         self.verify = verify
+        self.proxies = proxies
 
         if self.verify is False:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -78,132 +80,191 @@ class Api(object):
         else:
             raise MissingParameterError
 
-    def get_stock(
-        self,
-        symbol: str = None,
-        fields: str = "&data=daily"
-        "&volume=contract"
-        "&order=asc"
-        "&dividends=false"
-        "&backadjust=false"
-        "&daystoexpiration=1"
-        "&contractroll=expiration",
-        max_records: int = 640,
-    ) -> Response:
-        if not symbol:
-            raise MissingParameterError
-        api_filter = f"?symbol={symbol}"
-        if fields:
-            if not isinstance(fields, str):
-                raise ParameterError
-            api_filter = f"{api_filter}&fields={fields}"
-        if max_records:
-            if not isinstance(max_records, int):
-                raise ParameterError
-            api_filter = f"{api_filter}&maxrecords={max_records}"
-        response = self._session.get(
-            f"{self.url}/proxies/timeseries/queryeod.ashx{api_filter}",
-            headers=self.headers,
-            verify=self.verify,
-        )
-        return response
+    ####################################################################################################################
+    #                                                  Stock API                                                       #
+    ####################################################################################################################
+    @require_auth
+    def get_stock(self, **kwargs) -> Response:
+        """
+        Get historical stock data for a symbol.
 
-    def get_top_stocks_top_own(
-        self,
-        ordering: str = "asc",
-        order_by: str = "symbol",
-        meta: str = "field.shortName%2Cfield.type%2Cfield.description%2Clists.lastUpdate",
-        fields: str = "symbol%2CsymbolName%2ClastPrice%2CpriceChange%2CpercentChange%2Copinion%2CopinionPrevious%2CopinionLastWeek%2CopinionLastMonth%2CsymbolCode%2CsymbolType%2ChasOptions",
-        has_options: bool = True,
-        max_pages: int = 1,
-        per_page: int = 100,
-    ) -> List[Response]:
-        response = []
-        api_filter = ""
-        if ordering:
-            if not isinstance(ordering, str):
-                raise ParameterError
-            api_filter = f"{api_filter}&orderDir={ordering}"
-        if fields:
-            if not isinstance(fields, str):
-                raise ParameterError
-            api_filter = f"{api_filter}&fields={fields}"
-        if order_by:
-            if not isinstance(order_by, str):
-                raise ParameterError
-            api_filter = f"{api_filter}&orderBy={order_by}"
-        if meta:
-            if not isinstance(meta, str):
-                raise ParameterError
-            api_filter = f"{api_filter}&meta={meta}"
-        if has_options:
-            if not isinstance(has_options, bool):
-                raise ParameterError
-            api_filter = f"{api_filter}&hasOptions={str(has_options).lower()}"
-        if max_pages == 0 or max_pages > 3:
-            max_pages = 3
-        for page in range(0, max_pages):
-            response_page = self._session.get(
-                f"{self.url}/proxies/core-api/v1/quotes/get?lists=stocks.us.signals_ratings.v2_top{api_filter}&limit={per_page}&page={page}&raw=1",
-                headers=self.headers,
-                verify=self.verify,
-            )
-            response.append(response_page)
-        return response
+        :param symbol: The stock symbol.
+        :type symbol: str
+        :param data: Data frequency (e.g., 'daily').
+        :type data: str
+        :param volume: Volume type (e.g., 'contract').
+        :type volume: str
+        :param order: Sort order (e.g., 'asc').
+        :type order: str
+        :param dividends: Include dividends.
+        :type dividends: bool
+        :param backadjust: Back-adjust for splits.
+        :type backadjust: bool
+        :param daystoexpiration: Days to expiration.
+        :type daystoexpiration: int
+        :param contractroll: Contract roll method (e.g., 'expiration').
+        :type contractroll: str
+        :param max_records: Maximum records to return.
+        :type max_records: int
 
-    def get_top_etfs_top_own(
-        self,
-        ordering: str = "asc",
-        order_by: str = "symbol",
-        meta: str = "field.shortName%2Cfield.type%2Cfield.description%2Clists.lastUpdate",
-        fields: str = "symbol%2CsymbolName%2ClastPrice%2CpriceChange%2CpercentChange%2Copinion%2CopinionPrevious%2CopinionLastWeek%2CopinionLastMonth%2CsymbolCode%2CsymbolType%2ChasOptions",
-        has_options: bool = True,
-        max_pages: int = 1,
-        per_page: int = 100,
-    ) -> List[Response]:
-        response = []
-        api_filter = ""
-        if ordering:
-            if not isinstance(ordering, str):
-                raise ParameterError
-            api_filter = f"{api_filter}&orderDir={ordering}"
-        if fields:
-            if not isinstance(fields, str):
-                raise ParameterError
-            api_filter = f"{api_filter}&fields={fields}"
-        if order_by:
-            if not isinstance(order_by, str):
-                raise ParameterError
-            api_filter = f"{api_filter}&orderBy={order_by}"
-        if meta:
-            if not isinstance(meta, str):
-                raise ParameterError
-            api_filter = f"{api_filter}&meta={meta}"
-        if has_options:
-            if not isinstance(has_options, bool):
-                raise ParameterError
-            api_filter = f"{api_filter}&hasOptions={str(has_options).lower()}"
-        if max_pages == 0 or max_pages > 3:
-            max_pages = 3
-        for page in range(0, max_pages):
-            response_page = self._session.get(
-                f"{self.url}/proxies/core-api/v1/quotes/get?lists=etfs.us.signals_ratings.v2_top{api_filter}&limit={per_page}&page={page}",
-                headers=self.headers,
-                verify=self.verify,
-            )
-            response.append(response_page)
-        return response
+        :return: Response containing list of parsed Pydantic models with historical data.
+        :rtype: Response
 
-
-if __name__ == "__main__":
-    barchart_client = Api(url="https://www.barchart.com/")
-    top_stocks_responses = barchart_client.get_top_stocks_top_own(max_pages=1)
-    top_stocks = []
-    for top_stocks_response in top_stocks_responses:
+        :raises MissingParameterError: If symbol is not provided.
+        :raises ParameterError: If parameters are invalid.
+        """
         try:
-            top_stocks.append(top_stocks_response.json())
+            model = GetStockModel(**kwargs)
+            response = self._session.get(
+                url=f"{self.url}/proxies/timeseries/queryeod.ashx",
+                params=model.api_parameters,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()  # Raise if HTTP error
+            # Parse CSV (assuming format: symbol,timestamp,open,high,low,close,volume,openInterest)
+            lines = response.text.strip().split('\n')
+            parsed_data = []
+            for line in lines:
+                if line:
+                    parts = line.split(',')
+                    if len(parts) >= 7:
+                        item_dict = {
+                            'symbol': parts[0],
+                            'timestamp': parts[1],
+                            'open': float(parts[2]),
+                            'high': float(parts[3]),
+                            'low': float(parts[4]),
+                            'close': float(parts[5]),
+                            'volume': int(parts[6]),
+                        }
+                        if len(parts) > 7:
+                            item_dict['openInterest'] = int(parts[7])
+                        parsed_data.append(HistoricalItem.model_validate(item_dict))
+            return Response(response=response, result=parsed_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
         except Exception as e:
-            print(f"Top Stocks ERROR: {top_stocks_response}")
-    print(f"Top Stocks: {top_stocks}")
-    top_stocks = top_stocks[0]['data']
-    print(f'{top_stocks}')
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                                  Top Own API                                                     #
+    ####################################################################################################################
+    @require_auth
+    def get_top_stocks_top_own(self, **kwargs) -> Response:
+        """
+        Get top stocks based on ownership signals.
+
+        :param order_dir: Sort direction (e.g., 'asc').
+        :type order_dir: str
+        :param order_by: Field to sort by (e.g., 'symbol').
+        :type order_by: str
+        :param meta: Meta fields.
+        :type meta: str
+        :param fields: Fields to include.
+        :type fields: str
+        :param has_options: Filter for options availability.
+        :type has_options: bool
+        :param max_pages: Maximum pages to fetch (capped at 3).
+        :type max_pages: int
+        :param per_page: Records per page.
+        :type per_page: int
+
+        :return: Response containing list of parsed Pydantic models with top stocks data.
+        :rtype: Response
+
+        :raises ParameterError: If parameters are invalid.
+        """
+        try:
+            model = GetTopOwnModel(**kwargs)
+            all_parsed = []
+            max_pages = model.max_pages if model.max_pages <= 3 else 3
+            last_response = None
+            base_url = f"{self.url}/proxies/core-api/v1/quotes/get"
+            for page in range(max_pages):
+                params = model.api_parameters.copy()
+                params['lists'] = 'stocks.us.signals_ratings.v2_top'
+                params['limit'] = model.per_page
+                params['page'] = page
+                params['raw'] = 1
+                response = self._session.get(
+                    url=base_url,
+                    params=params,
+                    headers=self.headers,
+                    verify=self.verify,
+                    proxies=self.proxies,
+                )
+                response.raise_for_status()  # Raise if HTTP error
+                json_response = response.json()
+                result_data = json_response.get('data', json_response)
+                parsed_page = [TopOwnItem.model_validate(item) for item in result_data]
+                all_parsed.extend(parsed_page)
+                last_response = response
+            return Response(response=last_response, result=all_parsed)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def get_top_etfs_top_own(self, **kwargs) -> Response:
+        """
+        Get top ETFs based on ownership signals.
+
+        :param order_dir: Sort direction (e.g., 'asc').
+        :type order_dir: str
+        :param order_by: Field to sort by (e.g., 'symbol').
+        :type order_by: str
+        :param meta: Meta fields.
+        :type meta: str
+        :param fields: Fields to include.
+        :type fields: str
+        :param has_options: Filter for options availability.
+        :type has_options: bool
+        :param max_pages: Maximum pages to fetch (capped at 3).
+        :type max_pages: int
+        :param per_page: Records per page.
+        :type per_page: int
+
+        :return: Response containing list of parsed Pydantic models with top ETFs data.
+        :rtype: Response
+
+        :raises ParameterError: If parameters are invalid.
+        """
+        try:
+            model = GetTopOwnModel(**kwargs)
+            all_parsed = []
+            max_pages = model.max_pages if model.max_pages <= 3 else 3
+            last_response = None
+            base_url = f"{self.url}/proxies/core-api/v1/quotes/get"
+            for page in range(max_pages):
+                params = model.api_parameters.copy()
+                params['lists'] = 'etfs.us.signals_ratings.v2_top'
+                params['limit'] = model.per_page
+                params['page'] = page
+                params['raw'] = 1
+                response = self._session.get(
+                    url=base_url,
+                    params=params,
+                    headers=self.headers,
+                    verify=self.verify,
+                    proxies=self.proxies,
+                )
+                response.raise_for_status()  # Raise if HTTP error
+                json_response = response.json()
+                result_data = json_response.get('data', json_response)
+                parsed_page = [TopOwnItem.model_validate(item) for item in result_data]
+                all_parsed.extend(parsed_page)
+                last_response = response
+            return Response(response=last_response, result=all_parsed)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
